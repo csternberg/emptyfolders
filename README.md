@@ -11,6 +11,8 @@ A folder counts as empty when it:
 
 Symbolic links are never followed or treated as empty, and the folder you start in is never reported or deleted.
 
+System folders are skipped without errors: `$RECYCLE.BIN` and `System Volume Information` (Windows), `.Trash` and `.Trashes` (macOS). A folder that contains one is not considered empty.
+
 ## Usage
 
 ```

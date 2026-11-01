@@ -5,9 +5,12 @@ import time
 import logging
 from pathlib import Path
 
-VERSION = "2.1"
+VERSION = "2.2"
 SCRIPT_NAME = "emptyfolders.py"
 ALLOWED_FILES = {"thumbs.db", ".ds_store", ".localized"}
+# Lower-case names of system folders that are skipped entirely (Windows
+# recycle bin and System Volume Information; macOS trash folders)
+IGNORED_DIRS = {"$recycle.bin", "system volume information", ".trash", ".trashes"}
 
 EMPTY_FILE = "empty-folders.txt"
 ISSUES_FILE = "folders-with-issues.txt"
@@ -42,6 +45,8 @@ what counts as an empty folder:
   * a folder containing only such empty folders (nested), reported
     bottom-up, so a whole empty tree is listed from the leaves upwards
 Symbolic links are never followed and never treated as empty.
+System folders are skipped: $RECYCLE.BIN and System Volume Information
+(Windows), .Trash and .Trashes (macOS). A folder containing one is not empty.
 The folder you start in is never reported or deleted.
 
 output files (written in the current folder):
@@ -208,8 +213,14 @@ def main():
         issues_found += 1
         log.warning(f"Issue accessing {e.filename}: {e}")
 
-    # Bottom-up traversal (important for deletion and nested empty folders)
-    for root, dirs, files in os.walk(start_path, topdown=False, onerror=on_walk_error):
+    # Top-down scan so system folders can be pruned (a bottom-up walk would
+    # enter them and report access errors for e.g. System Volume Information)
+    scanned = []  # (root, all subfolder names, files), parents before children
+    for root, dirs, files in os.walk(start_path, onerror=on_walk_error):
+        scanned.append((root, list(dirs), files))
+        for d in [d for d in dirs if d.lower() in IGNORED_DIRS]:
+            log.info(f"Ignored system folder: {os.path.join(root, d)}")
+        dirs[:] = [d for d in dirs if d.lower() not in IGNORED_DIRS]
         total_scanned += 1
 
         if total_scanned % 100 == 0:
@@ -217,6 +228,10 @@ def main():
             rate = total_scanned / elapsed if elapsed > 0 else 0
             print(f"Scanned: {total_scanned} folders | {rate:.1f} folders/sec")
 
+    # Evaluate bottom-up (important for deletion and nested empty folders).
+    # Ignored folders stay in `dirs` but never enter empty_dirs, so a folder
+    # that contains one is never considered empty.
+    for root, dirs, files in reversed(scanned):
         # Never report or delete the folder the scan was started from
         if Path(root) == start_path:
             continue

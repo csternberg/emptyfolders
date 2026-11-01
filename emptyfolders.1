@@ -1,4 +1,4 @@
-.TH EMPTYFOLDERS 1 "2026-11-01" "emptyfolders 2.1" "User Commands"
+.TH EMPTYFOLDERS 1 "2026-11-01" "emptyfolders 2.2" "User Commands"
 .SH NAME
 emptyfolders \- find and optionally delete empty folders
 .SH SYNOPSIS
@@ -10,6 +10,10 @@ folder that is empty. A folder is empty if it has no content, contains only
 \fIThumbs.db\fR, \fI.DS_Store\fR and/or \fI.localized\fR, or contains only
 folders that are themselves empty. Symbolic links are never followed and the
 starting directory is never reported or deleted.
+.PP
+System folders are skipped: \fI$RECYCLE.BIN\fR and \fISystem Volume Information\fR
+(Windows), \fI.Trash\fR and \fI.Trashes\fR (macOS). A folder that contains one
+is not considered empty.
 .PP
 Without a delete option nothing is changed. All options are case-insensitive.
 .SH OPTIONS
