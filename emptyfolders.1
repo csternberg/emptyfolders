@@ -1,0 +1,56 @@
+.TH EMPTYFOLDERS 1 "2026-11-01" "emptyfolders 2.1" "User Commands"
+.SH NAME
+emptyfolders \- find and optionally delete empty folders
+.SH SYNOPSIS
+.B emptyfolders.py
+[\fB\-hvl\fR] [\fB\-dp\fR | \fB\-df\fR]
+.SH DESCRIPTION
+Scans the current directory and all subdirectories bottom-up and lists every
+folder that is empty. A folder is empty if it has no content, contains only
+\fIThumbs.db\fR, \fI.DS_Store\fR and/or \fI.localized\fR, or contains only
+folders that are themselves empty. Symbolic links are never followed and the
+starting directory is never reported or deleted.
+.PP
+Without a delete option nothing is changed. All options are case-insensitive.
+.SH OPTIONS
+.TP
+.BR \-dp ", " \-\-delete\-prompt ", " \-\-prompt
+Delete empty folders, asking for confirmation for each one.
+.TP
+.BR \-df ", " \-\-delete\-force ", " \-\-force
+Delete empty folders without asking. Mutually exclusive with \fB\-dp\fR.
+.TP
+.BR \-l ", " \-\-log
+Append a full activity log to \fIscan.log\fR.
+.TP
+.BR \-h ", " \-? ", " \-\-help
+Show detailed help and exit.
+.TP
+.BR \-v ", " \-\-version
+Show version and exit.
+.SH DELETING
+Only \fIThumbs.db\fR, \fI.DS_Store\fR and \fI.localized\fR are removed from a
+folder before the folder itself is removed. If other content is found the folder
+is kept and an error is logged. Deleted folders cannot be restored; run without
+a delete option first and review \fIempty\-folders.txt\fR.
+.SH FILES
+.TP
+.I empty\-folders.txt
+Always written. One empty folder per line.
+.TP
+.I folders\-with\-issues.txt
+Created only if folders could not be read.
+.TP
+.I errors.log
+Created only if warnings or errors occurred; appended to.
+.TP
+.I scan.log
+Created only with \fB\-\-log\fR; appended to.
+.SH EXIT STATUS
+0 on success, 1 if some folders could not be read, 2 for invalid usage.
+.SH EXAMPLES
+.nf
+emptyfolders.py
+emptyfolders.py \-\-delete\-prompt
+emptyfolders.py \-DF \-L
+.fi
